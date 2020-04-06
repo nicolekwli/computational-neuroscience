@@ -29,14 +29,14 @@ def get_spike_train(rate, big_t, tau_ref):
     return spike_train
 
 
-def get_spike_count(spike_train):
+def get_spike_count(train, bigT, windowWidth):
     count = 0
     counts = []
 
     # get the spike count for wach window
-    for i in range (0, int(big_t/window_width)):
-        for spike in spike_train:
-            if ((spike >= i*window_width) and (spike < i*window_width+window_width)):
+    for i in range (0, int(bigT/windowWidth)):
+        for spike in train:
+            if ((spike >= i*windowWidth) and (spike < i*windowWidth+windowWidth)):
                 count += 1
         counts.append(count)
         count = 0
@@ -58,15 +58,29 @@ def calc_fano_fac(counts):
     var = var / len(counts)
     # sd = m.sqrt(var)
     print("FANO: ", str(var/mean))
-    coeff = calc_coeff_var(m.sqrt(var), mean)
-    print("COEFF: ", str(coeff))
+    # coeff = calc_coeff_var(m.sqrt(var), mean)
+    # print("COEFF: ", str(m.sqrt(var)/mean))
     return (var/mean)
 
+
+def get_spike_intervals(train):
+    intervals = []
+    for i in range (1, len(train)):
+        intervals.append(train[i] - train[i-1])
+    return intervals
+
 # coefficient of variation = SD / avg --> applied to inter-spike interval = time difference between successive spikes
-# ISI is 1000
-# am confused
-def calc_coeff_var(sd, avg):
-    return (sd/avg)
+def calc_coeff_var(intervals):
+    mean = sum(intervals) / len(intervals)
+    var = 0
+    for i in intervals:
+        var += (i - mean) ** 2
+    var = var / len(intervals)
+    sd = m.sqrt(var)
+    coeff = sd / mean
+    print("COEFF: ", coeff)
+    return coeff
+
 
 
 Hz = 1.0
@@ -79,17 +93,18 @@ rate = 35.0 * Hz
 tau_ref = 0 * ms
 
 # original 5 * sec
-# I assume this is the ISI
 big_t = 1 * sec
-window_width = 100 * ms
+window_width = 10 * ms
+
+ISI = 0
 
 spike_train = get_spike_train(rate, big_t, tau_ref)
 
-print("Spike train for the interval " + str(big_t))
 print(len(spike_train) / big_t)
 
-print("Spike Train")
 print(spike_train)
 
-s_counts = get_spike_count(spike_train)
+s_counts = get_spike_count(spike_train, big_t, window_width)
 calc_fano_fac(s_counts)
+s_intervals = get_spike_intervals(spike_train)
+calc_coeff_var(s_intervals)
