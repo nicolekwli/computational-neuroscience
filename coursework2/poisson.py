@@ -29,14 +29,17 @@ def get_spike_train(rate, big_t, tau_ref):
     return spike_train
 
 
+# This returns a list of spike counts for individual windows
 def get_spike_count(train, bigT, windowWidth):
     count = 0
     counts = []
 
-    # get the spike count for wach window
-    for i in range (0, int(bigT/windowWidth)):
+    windowNum = int(bigT / windowWidth)
+
+    # get the spike count for each window
+    for i in range (0, windowNum):
         for spike in train:
-            if ((spike >= i*windowWidth) and (spike < i*windowWidth+windowWidth)):
+            if ((spike >= i*windowWidth) and (spike < (i+1)*windowWidth)):
                 count += 1
         counts.append(count)
         count = 0
@@ -63,8 +66,10 @@ def calc_fano_fac(counts):
     return (var/mean)
 
 
+# get time difference between spikes
 def get_spike_intervals(train):
     intervals = []
+    intervals.append(train[0])
     for i in range (1, len(train)):
         intervals.append(train[i] - train[i-1])
     return intervals
@@ -82,29 +87,71 @@ def calc_coeff_var(intervals):
     return coeff
 
 
+if __name__ == "__main__":
+    Hz = 1.0
+    sec = 1.0
+    ms = 0.001
 
-Hz = 1.0
-sec = 1.0
-ms = 0.001
+    rate = 35.0 * Hz
+    big_t = 1000 * sec
 
-# original 15
-rate = 35.0 * Hz
-# original 5
-tau_ref = 0 * ms
+    tau_ref = 0 * ms
+    window_width = 10 * ms
 
-# original 5 * sec
-big_t = 1 * sec
-window_width = 10 * ms
+    spike_train = get_spike_train(rate, big_t, tau_ref)
 
-ISI = 0
+    #print(len(spike_train))
+    #print(len(spike_train) / big_t)
+    # print(spike_train)
 
-spike_train = get_spike_train(rate, big_t, tau_ref)
+    # for refract = 0, windowwidth 10ms
+    print("----- refracotry = 0, windowwidth = 10ms")
+    s_counts = get_spike_count(spike_train, big_t, window_width)
+    calc_fano_fac(s_counts)
+    s_intervals = get_spike_intervals(spike_train)
+    calc_coeff_var(s_intervals)
 
-print(len(spike_train) / big_t)
+    # window 50ms
+    print("----- refracotry = 0, windowwidth = 50ms")
+    window_width = 50 * ms
+    s_counts = get_spike_count(spike_train, big_t, window_width)
+    calc_fano_fac(s_counts)
+    s_intervals = get_spike_intervals(spike_train)
+    calc_coeff_var(s_intervals)
 
-print(spike_train)
 
-s_counts = get_spike_count(spike_train, big_t, window_width)
-calc_fano_fac(s_counts)
-s_intervals = get_spike_intervals(spike_train)
-calc_coeff_var(s_intervals)
+    # window 100ms
+    print("----- refracotry = 0, windowwidth = 100ms")
+    window_width = 100 * ms
+    s_counts = get_spike_count(spike_train, big_t, window_width)
+    calc_fano_fac(s_counts)
+    s_intervals = get_spike_intervals(spike_train)
+    calc_coeff_var(s_intervals)
+
+    print("----- refracotry = 5ms, windowwidth = 10ms")
+    tau_ref = 5 * ms
+    spike_train = get_spike_train(rate, big_t, tau_ref)
+
+    window_width = 10 * ms
+
+    s_counts = get_spike_count(spike_train, big_t, window_width)
+    calc_fano_fac(s_counts)
+    s_intervals = get_spike_intervals(spike_train)
+    calc_coeff_var(s_intervals)
+
+
+    print("----- refracotry = 5ms, windowwidth = 50ms")
+    window_width = 50 * ms
+
+    s_counts = get_spike_count(spike_train, big_t, window_width)
+    calc_fano_fac(s_counts)
+    s_intervals = get_spike_intervals(spike_train)
+    calc_coeff_var(s_intervals)
+
+    print("----- refracotry = 5ms, windowwidth = 100ms")
+    window_width = 100 * ms
+
+    s_counts = get_spike_count(spike_train, big_t, window_width)
+    calc_fano_fac(s_counts)
+    s_intervals = get_spike_intervals(spike_train)
+    calc_coeff_var(s_intervals)
