@@ -100,10 +100,6 @@ if __name__ == "__main__":
 
     spike_train = get_spike_train(rate, big_t, tau_ref)
 
-    #print(len(spike_train))
-    #print(len(spike_train) / big_t)
-    # print(spike_train)
-
     # for refract = 0, windowwidth 10ms
     print("----- refracotry = 0, windowwidth = 10ms")
     s_counts = get_spike_count(spike_train, big_t, window_width)
@@ -128,6 +124,7 @@ if __name__ == "__main__":
     s_intervals = get_spike_intervals(spike_train)
     calc_coeff_var(s_intervals)
 
+    # for refract = 5ms, windowwidth 10ms
     print("----- refracotry = 5ms, windowwidth = 10ms")
     tau_ref = 5 * ms
     spike_train = get_spike_train(rate, big_t, tau_ref)

@@ -43,34 +43,24 @@ def autocorrelogram(spikes):
     for s in range (len(spikes)):
         if (spikes[s] == 1):
             for i in range (-50, 50):
-                if (i != 0):
-                    try:
-                        if (spikes[s+i] == 1):
-                            occurance[i+50] += 1
-                    except:
-                        pass
+                #if (i != 0):
+                try:
+                    if (spikes[s+i] == 1):
+                        occurance[i+50] += 1
+                except:
+                    pass
 
     occurance[:] = [o / len(spikes) for o in occurance]
 
     x = np.arange(-100,100,2)
 
-    # plt.bar(x, occurance)
-    # plt.show()
-    # plt.savefig('q3.png')
-    '''
-    inter = []
-    for s in range (len(spikes)):
-        if (spikes[s] == 1):
-            time = ( s+1 ) * 0.002
-            inter.append(time)
-        else:
-            inter.append(0)
+    #plt.plot(x, occurance)
+    #plt.title('Autocorrelogram')
+    #plt.xlabel('Time (ms)')
+    #plt.ylabel('Membrane Potential (V)')
+    #plt.show()
+    #plt.savefig('q3_2.png')
 
-    # print(occurance)
-    # list(range(-200, 200)),
-    plt.acorr(inter, maxlags = 100)
-    plt.show()
-    '''
 
 
 def get_spike_trig_avg(spike_times, stimulus, window):
@@ -79,12 +69,9 @@ def get_spike_trig_avg(spike_times, stimulus, window):
         # Get list of times to get from stimulus
         # Convert to int
         windowStart = int(spike_times[s] * 1000 - 100)
-        # windowEnd = int(spike_times[s] * 1000 + 50)
         windowEnd = int(spike_times[s] * 1000)
         if (windowStart < 0):
             windowStart = 0
-        # if (windowEnd > (20 * 60 * 1000)):
-        #     windowEnd = 20*60*1000
 
         timings = np.arange(windowStart, windowEnd, 2, dtype = int)
         for i in range (len(timings)):
@@ -98,17 +85,17 @@ def get_spike_trig_avg(spike_times, stimulus, window):
     return sta
 
 def show_trig_avg_plot(xs, ys):
-    plt.bar(xs, ys)
+    plt.plot(xs, ys)
     # plt.show()
-    plt.savefig('q4.png')
+    plt.title('Spike Triggered Average')
+    plt.xlabel('Time (ms)')
+    plt.savefig('q4_2.png')
+
 # Q2---------------------------------------------
 print("------------------START------------------")
 print("RHO DAT 20 minutes Sampling rate 500Hz")
 #spikes=[int(x) for x in load_data("rho.dat")]
 spikes=load_data("rho.dat",int)
-
-# print(len(spikes))
-# print(spikes[35:40])
 
 # need to get spike_train for the window
 print("window: 10ms")
@@ -153,6 +140,5 @@ print(len(trigger))
 
 xs = np.arange(-100,0,2)
 show_trig_avg_plot(xs,trigger)
-# print(len(stimulus))
-# print(stimulus[0:5])
+
 
