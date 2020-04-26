@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import random
 # Part A 
     # Question 1
         # Simulate an integrate and fire model
@@ -43,13 +44,13 @@ def getVoltageForTimes():
         if (i == 0):
             V[i] = 0
         else:
+            # v(i-1) + dv/dt * dt
             V[i] = V[i-1] + ((E_L - V[i-1] + (m_resistance * I_e)) / m_tau) * dt
    
         if (V[i] >= v_threshold):
             V[i] = v_rest
 
     return V
- 
 
 def plotVoltage(times, V):
     plt.plot(times, V)
@@ -63,6 +64,11 @@ def plotVoltage(times, V):
 
 
 # QUESTION A2----------------------------
+def getVoltage(volt):
+    return volt + ((v_rest - volt + ())) * dt
+
+def getSynapse():
+    pass
 
 if __name__ == "__main__":
     print("-----PartA Question1-----")
@@ -98,7 +104,27 @@ if __name__ == "__main__":
     Rm_Gs = 0.15
     P = 0.5
     s_tau = 10 * ms
-    
+
+
+    # Excitatory
+    E_s = 0 * mV
+    # Inhibitory 
+    E_s = -80 * mV
+
+    # 1second of activity -> times is the same, should be able to reuse
+    # V initial is random values between vrest and vthresh
+    init_V = random.randint(v_rest, v_threshold)
+    S_1 = np.zeros(len(times))
+    S_1[0] = 0
+    S_2 = np.zeros(len(times))
+    S_2[0] = 0
+
+    # get volateg for V1 then send that to v2
+    getVoltage(init_V)
+
+    for time in times:
+        # we do the sending between synapses here
+        pass
 
 
       
