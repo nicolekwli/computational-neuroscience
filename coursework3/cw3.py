@@ -35,7 +35,7 @@ ohms = 0.001
 
 
 
-# QUESTION A1----------------------------
+# QUESTION A1---------------------------------------------------------
 # V(t + dt) = V(T) + dt(f(V,t))
 def getVoltageForTimes():
     V = np.zeros(len(times))
@@ -63,17 +63,73 @@ def plotVoltage(times, V):
 
 
 
-# QUESTION A2----------------------------
-def getVoltage(volt):
-    return volt + ((v_rest - volt + ())) * dt
+# QUESTION A2---------------------------------------------------
+def simulateTwoNeurons():
+    S_12 = np.zeros(len(times))
+    S_21 = np.zeros(len(times))
 
-def getSynapseCurrent(curTime, volt, s):
+    V_1 = np.zeros(len(times))
+    V_1[0] = (random.randint(int(v_rest / mV), int(v_threshold /mV))) * mV
+    V_2 = np.zeros(len(times))
+    V_2[0] = (random.randint(int(v_rest / mV), int(v_threshold /mV))) * mV
+
+    for i in range (len(times)):
+        if (i == 0):
+            S_12[i] = 0
+            S_21[i] = 0
+
+        else:
+            # need to update s for n1 then use that to get current 
+            current = getSynapseCurrent(V_1[i-1], S_21[i])
+            V_1[i] = getVoltage(V_1[i-1], current)
+
+            if (V_1[i] >= v_threshold):
+                V_1[i] = v_rest
+                S_12[i] = S_12[i-1] + P
+                print(V_1[i])
+
+            else :
+                S_12[i] = updateSynapse(S_12[i-1])
+
+            
+            current = getSynapseCurrent(V_2[i], S_12[i])
+            V_2[i] = getVoltage(V_2[i-1], current)
+
+            if (V_2[i] >= v_threshold):
+                V_2[i] = v_rest
+                S_21[i] = S_21[i-1] + P
+            else:
+                S_21[i] = updateSynapse(S_21[i-1])
+
+    return V_1, V_2
+
+def getVoltage(volt, sypCur):
+    nextVolt = volt + (E_L - volt + Rm_Ie + sypCur) / m_tau * dt
+    return nextVolt
+
+def updateSynapse(s):
+    return (s + dt * (-s/s_tau))
+
+# This is Is(t) = gs * s(t) * (Es - V)
+def getSynapseCurrent(volt, s):
     # g_bar_x * s(t) * (Es - V)
-    s_t = s + dt * (-s / s_tau)
-    return s_t * (E_s - volt)
+    Is_t = Rm_Gs * s * (E_s - volt)
+    return Is_t
 
+def plotVoltage2(times, V, V1):
+    plt.plot(times, V)
+    plt.plot(times, V1)
+
+    plt.title('Simulation of two neurons')
+    plt.xlabel('Time (msec)')
+    plt.ylabel('Membrane Potential (V)')
+    plt.show()
+
+
+# MAIN ----------------------------------------------------------
 if __name__ == "__main__":
     print("-----PartA Question1-----")
+    
     m_tau = 10 * ms
 
     E_L = -70 * mV
@@ -90,7 +146,7 @@ if __name__ == "__main__":
     refrac = 0
 
     V = getVoltageForTimes()
-    plotVoltage(times, V)
+    # plotVoltage(times, V)
 
 
     print("-----PARTA QUESTION2-----")
@@ -107,28 +163,17 @@ if __name__ == "__main__":
     P = 0.5
     s_tau = 10 * ms
 
-
     # Excitatory
     E_s = 0 * mV
+
+    V_1, V_2 = simulateTwoNeurons()
+    plotVoltage2(times, V_1, V_2)
+
     # Inhibitory 
     E_s = -80 * mV
 
-    # 1second of activity -> times is the same, should be able to reuse
-    # V initial is random values between vrest and vthresh
-
-    S_1 = np.zeros(len(times))
-    S_1[0] = 0
-    S_2 = np.zeros(len(times))
-    S_2[0] = 0
-
-    V_1 = np.zeros(len(times))
-    V_1[0] = random.randint(v_rest, v_threshold)
-    V_2 = np.zeros(len(times))
-    V_2[0] = random.randint(v_rest, v_threshold)
-
-    # get volateg for V1 then send that to v2
-    current = getSynapseCurrent(times[0], init_V, S_2[0])
-    getVoltage(init_V, current)
+    V_1, V_2 = simulateTwoNeurons()
+    plotVoltage2(times, V_1, V_2)
 
 
 
