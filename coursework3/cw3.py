@@ -67,8 +67,10 @@ def plotVoltage(times, V):
 def getVoltage(volt):
     return volt + ((v_rest - volt + ())) * dt
 
-def getSynapse():
-    pass
+def getSynapseCurrent(curTime, volt, s):
+    # g_bar_x * s(t) * (Es - V)
+    s_t = s + dt * (-s / s_tau)
+    return s_t * (E_s - volt)
 
 if __name__ == "__main__":
     print("-----PartA Question1-----")
@@ -113,18 +115,22 @@ if __name__ == "__main__":
 
     # 1second of activity -> times is the same, should be able to reuse
     # V initial is random values between vrest and vthresh
-    init_V = random.randint(v_rest, v_threshold)
+
     S_1 = np.zeros(len(times))
     S_1[0] = 0
     S_2 = np.zeros(len(times))
     S_2[0] = 0
 
-    # get volateg for V1 then send that to v2
-    getVoltage(init_V)
+    V_1 = np.zeros(len(times))
+    V_1[0] = random.randint(v_rest, v_threshold)
+    V_2 = np.zeros(len(times))
+    V_2[0] = random.randint(v_rest, v_threshold)
 
-    for time in times:
-        # we do the sending between synapses here
-        pass
+    # get volateg for V1 then send that to v2
+    current = getSynapseCurrent(times[0], init_V, S_2[0])
+    getVoltage(init_V, current)
+
+
 
 
       
