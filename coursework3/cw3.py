@@ -15,7 +15,6 @@ import random
         
         # Use Euler's method with timestep delta_t = 0.25ms
         # Assume no refractory period
-
         #Ans1: Plot voltage as a function of time
 
 
@@ -126,6 +125,9 @@ def plotVoltage2(times, V, V1):
     plt.show()
 
 
+# QUESTION B1---------------------------------------------------
+
+
 # MAIN ----------------------------------------------------------
 if __name__ == "__main__":
     print("-----PartA Question1-----")
@@ -148,7 +150,7 @@ if __name__ == "__main__":
     V = getVoltageForTimes()
     # plotVoltage(times, V)
 
-
+    # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTA QUESTION2-----")
     # Neuron Params
     m_tau = 20 * ms
@@ -174,6 +176,24 @@ if __name__ == "__main__":
 
     V_1, V_2 = simulateTwoNeurons()
     plotVoltage2(times, V_1, V_2)
+
+    # ----------------------------------------------------------------------------------------------------------------------
+    print("-----PARTB QUESTION1-----")
+
+    # neuron params
+    E_L = -65 * mV
+    v_rest = -65 * mV
+    v_threshold = -50 * mV
+    v_reset = -65 * mV
+
+    # passive membrane leak conductance 
+    R_m = 100 * ohms
+    m_tau = 10 * ms
+
+    # do not include input current
+    I_e = 0
+
+    # 40 incoming synapses, all conductance based
 
 
 

@@ -152,3 +152,4 @@ if __name__ == "__main__":
     calc_fano_fac(s_counts)
     s_intervals = get_spike_intervals(spike_train)
     calc_coeff_var(s_intervals)
+    

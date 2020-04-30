@@ -57,6 +57,7 @@ def autocorrelogram(spikes):
     plt.plot(x, occurance)
     plt.title('Autocorrelogram')
     plt.xlabel('Time (ms)')
+    plt.ylabel('Average Spikes')
     #plt.ylabel('Membrane Potential (V)')
     plt.show()
     #plt.savefig('q3_2.png')
@@ -85,12 +86,16 @@ def get_spike_trig_avg(spike_times, stimulus, window):
     return sta
 
 def show_trig_avg_plot(xs, ys):
+    plt.clf()
+    plt.cla()
+    plt.close()
     plt.plot(xs, ys)
     plt.title('Spike Triggered Average')
     plt.xlabel('Time (ms)')
-    # plt.savefig('q4_2.png')
+    plt.ylabel('Stimulus')
+    #plt.savefig('q4_2.png')
     plt.show()
-
+    
 # Q2---------------------------------------------
 print("------------------START------------------")
 print("RHO DAT 20 minutes Sampling rate 500Hz")
