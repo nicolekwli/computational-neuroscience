@@ -25,7 +25,7 @@ import random
 Cm(dv/dt) = ( E_L - V )/ m_rests + I_e : volt (unless refractory)
 '''
 
-
+Hz = 1.0
 sec = 1.0
 ms = 0.001
 mV = 0.001   # millivolt
@@ -54,12 +54,13 @@ def getVoltageForTimes():
 def plotVoltage(times, V):
     plt.plot(times, V)
 
-
     plt.title('Integrate-and-Fire')
     plt.xlabel('Time (msec)')
     plt.ylabel('Membrane Potential (V)')
     plt.show()
 
+def A1():
+    pass
 
 
 # QUESTION A2---------------------------------------------------
@@ -194,6 +195,36 @@ if __name__ == "__main__":
     I_e = 0
 
     # 40 incoming synapses, all conductance based
+        # single-exponential timecourse
+        # 40 Si(t)
+        # 40 gi
+        # use ODE to solve 40 S and 1 Volt
+    s_tau = 2 * ms  # decay time constant
+    g_i = 4     # initial peak conductance nanaSeimens (strength)
+    E_s = 0
+    ds = 0.5
+
+    dt = 0.25 * ms
+
+    # input spike train = independent homogeneous poisson process
+        # with same average firing rate <r>, fixed in time but spikes arrive randomly
+        # getting the rest of the r
+            # draw random number on the unit interval from each synapse at each timestep
+            # if < r dt ->> spike has occured
+            # r dt needs to be < 1
+    r = 15  * Hz
+
+    # initialise ss and gs
+    s_i = np.zeros(40)
+    g_is = np.empty(40)
+    g_is.fill(g_i)
+
+    V = getVoltageForTimes()
+
+
+
+
+
 
 
 
