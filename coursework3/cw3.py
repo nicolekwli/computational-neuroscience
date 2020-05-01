@@ -86,7 +86,7 @@ def simulateTwoNeurons():
             if (V_1[i] >= v_threshold):
                 V_1[i] = v_rest
                 S_12[i] = S_12[i-1] + P
-                print(V_1[i])
+                # print(V_1[i])
 
             else :
                 S_12[i] = updateSynapse(S_12[i-1])
@@ -127,6 +127,36 @@ def plotVoltage2(times, V, V1):
 
 
 # QUESTION B1---------------------------------------------------
+def genSpikeTrain():
+    spikes = np.zeros(40)
+    for s in range (len(spikes)):
+        spike = random.uniform(0.00, 1.00)
+        if (spike < r*dt):
+            spikes[s] = 1
+        else:
+            spikes[s] = 0
+    return spikes
+
+# for each time
+def simulateNeuron(ss, gs, volt):
+    current = np.zeros(40)
+    for c in range (40):
+        current[c] =  R_m * gs[c] * ss[c] * (E_s - volt)
+    # do everything but for all 40 synapses at the same tie
+
+    # get one votlage
+    nextVolt = volt + (E_L - volt + sum(current))/ m_tau * dt
+
+    # check if spike 
+    if (nextVolt >= v_threshold):
+        nextVolt = v_rest
+        #_12[i] = S_12[i-1] + P
+
+    else :
+        pass
+        # S_12[i] = updateSynapse(S_12[i-1])
+
+    return nextVolt
 
 
 # MAIN ----------------------------------------------------------
@@ -170,13 +200,13 @@ if __name__ == "__main__":
     E_s = 0 * mV
 
     V_1, V_2 = simulateTwoNeurons()
-    plotVoltage2(times, V_1, V_2)
+    # plotVoltage2(times, V_1, V_2)
 
     # Inhibitory 
     E_s = -80 * mV
 
     V_1, V_2 = simulateTwoNeurons()
-    plotVoltage2(times, V_1, V_2)
+    # plotVoltage2(times, V_1, V_2)
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION1-----")
@@ -196,11 +226,9 @@ if __name__ == "__main__":
 
     # 40 incoming synapses, all conductance based
         # single-exponential timecourse
-        # 40 Si(t)
-        # 40 gi
         # use ODE to solve 40 S and 1 Volt
     s_tau = 2 * ms  # decay time constant
-    g_i = 4     # initial peak conductance nanaSeimens (strength)
+    gbar_i = 4     # initial peak conductance nanaSeimens (strength)
     E_s = 0
     ds = 0.5
 
@@ -213,14 +241,43 @@ if __name__ == "__main__":
             # if < r dt ->> spike has occured
             # r dt needs to be < 1
     r = 15  * Hz
+    
+    # print(spike_train)
 
     # initialise ss and gs
     s_i = np.zeros(40)
-    g_is = np.empty(40)
-    g_is.fill(g_i)
+    g_is = np.zeros(40)
+    #g_is.fill(g_i)
 
-    V = getVoltageForTimes()
+    V = np.zeros(len(times))
+    V[0] = 0
+    # update each synapse with each voltage, it should affect the same neuron 
+    # (i.e R_m * I_s_1 + R_m * I_s_2 + ... + R_m * I_s_40)
+    for i in range (1,len(times)):
+        # 40 spikes for 40 synapses
+        spike_train = genSpikeTrain()
 
+        for s in range (len(s_i)):
+            current = np.zeros(40)
+            if (spike_train[s] == 1):
+                s_i[s] = s_i[s] + P
+
+            else :
+                s_i[s] = updateSynapse(s_i[s])
+
+            current[s] =  R_m * g_is[s] * s_i[s] * (E_s - V[i-1])
+            # do everything but for all 40 synapses at the same tie
+
+            # get one votlage
+        V[i] = V[i-1] + (E_L - V[i-1] + sum(current))/ m_tau * dt
+        if (V[i] >= v_threshold):
+            V[i] = v_rest
+
+        # Get Voltage using synapses
+        # V[i] = simulateNeuron(s_i, g_is, V[i-1])
+
+    
+    plotVoltage(times, V)
 
 
 
