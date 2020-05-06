@@ -131,6 +131,8 @@ def genSpikeTrain():
     spikes = np.zeros(40)
     for s in range (len(spikes)):
         spike = random.uniform(0.00, 1.00)
+        #spike = random.random()
+        
         if (spike < r*dt):
             spikes[s] = 1
         else:
@@ -179,7 +181,7 @@ if __name__ == "__main__":
     refrac = 0
 
     V = getVoltageForTimes()
-    # plotVoltage(times, V)
+    #plotVoltage(times, V)
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTA QUESTION2-----")
@@ -206,7 +208,7 @@ if __name__ == "__main__":
     E_s = -80 * mV
 
     V_1, V_2 = simulateTwoNeurons()
-    # plotVoltage2(times, V_1, V_2)
+    #plotVoltage2(times, V_1, V_2)
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION1-----")
@@ -256,28 +258,38 @@ if __name__ == "__main__":
     for i in range (1,len(times)):
         # 40 spikes for 40 synapses
         spike_train = genSpikeTrain()
-
-        for s in range (len(s_i)):
-            current = np.zeros(40)
+        current = 0
+        for s in range (1,len(s_i)):
             if (spike_train[s] == 1):
-                s_i[s] = s_i[s] + P
+                # s_i(t) = 0.5 + S_i[t-1] + (25 * ms * -s_i[t-1] / tau_s)
+                #s_i[s] = s_i[s-1] + ds + ((-s_i[s-1] / s_tau) * dt)
+                s_i[s] = s_i[s-1] + ds
 
             else :
-                s_i[s] = updateSynapse(s_i[s])
+                # (s + dt * (-s/s_tau))
+                # s_i[s] = updateSynapse(s_i[s-1])
+                s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
 
-            current[s] =  R_m * g_is[s] * s_i[s] * (E_s - V[i-1])
+            
             # do everything but for all 40 synapses at the same tie
-
+            current = current + gbar_i*s_i[s]
             # get one votlage
-        V[i] = V[i-1] + (E_L - V[i-1] + sum(current))/ m_tau * dt
+        # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
+        current = R_m * current * (E_s - V[i-1])
+        # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
+        V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
         if (V[i] >= v_threshold):
             V[i] = v_rest
 
         # Get Voltage using synapses
         # V[i] = simulateNeuron(s_i, g_is, V[i-1])
 
-    
     plotVoltage(times, V)
+
+    # ----------------------------------------------------------------------------------------------------------------------
+    print("-----PARTB QUESTION2-----")
+    pre_syn_spike_t = 0
+    post_syn_spike_t = 0
 
 
 
