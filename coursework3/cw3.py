@@ -162,7 +162,6 @@ def simulateNeuron(ss, gs, volt):
 
 def getVoltages40Syn(stdp):
     # update each synapse with each voltage, it should affect the same neuron 
-    # (i.e R_m * I_s_1 + R_m * I_s_2 + ... + R_m * I_s_40)
     for i in range (len(times)):
         # 40 spikes for 40 synapses
         spike_train = genSpikeTrain()
@@ -313,6 +312,7 @@ if __name__ == "__main__":
     V = np.zeros(len(times))
     V[0] = 0
 
+    fire_rate = np.zeros(duration / 10*sec)
     for i in range (len(times)):
         # 40 spikes for 40 synapses
         spike_train = genSpikeTrain()
@@ -338,7 +338,7 @@ if __name__ == "__main__":
         # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
         V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
         if (V[i] >= v_threshold):
-            # ---------------------------------------GET FIRING RATE (10 second time bins)------------------------------
+            # ---------------------------------------GET FIRING RATE (10 second time bins) get from cw2 count spikes with spike times ------------------------------
             V[i] = v_rest
             post_syn_spike_t = times[i]
             # NEED TO UPDATE EVERY SYNAPSE
@@ -350,7 +350,6 @@ if __name__ == "__main__":
     # plotVoltage(times, V)
 
     print("-----PARTB QUESTION2 HISTOGRAM-----")
-    yaxis = np.arange(0, 40, 1)
     plt.hist(g_is)
     plt.show()
 
