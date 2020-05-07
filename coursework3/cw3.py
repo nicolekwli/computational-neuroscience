@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     refrac = 0
 
-    V = getVoltageForTimes()
+    #V = getVoltageForTimes()
     #plotVoltage(times, V)
 
     # ----------------------------------------------------------------------------------------------------------------------
@@ -240,7 +240,7 @@ if __name__ == "__main__":
     # Inhibitory 
     E_s = -80 * mV
 
-    V_1, V_2 = simulateTwoNeurons()
+    #V_1, V_2 = simulateTwoNeurons()
     #plotVoltage2(times, V_1, V_2)
 
     # ----------------------------------------------------------------------------------------------------------------------
@@ -280,8 +280,7 @@ if __name__ == "__main__":
     V[0] = 0
     
     stdp = False
-    getVoltages40Syn(stdp)
-
+    #getVoltages40Syn(stdp)
     # plotVoltage(times, V)
 
     # ----------------------------------------------------------------------------------------------------------------------
@@ -302,6 +301,8 @@ if __name__ == "__main__":
     gbar_i = 4
     g_is = np.zeros(40)
     g_is.fill(gbar_i)
+
+    s_i = np.zeros(40)
 
     r = 15  * Hz
 
@@ -337,6 +338,7 @@ if __name__ == "__main__":
         # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
         V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
         if (V[i] >= v_threshold):
+            # ---------------------------------------GET FIRING RATE (10 second time bins)------------------------------
             V[i] = v_rest
             post_syn_spike_t = times[i]
             # NEED TO UPDATE EVERY SYNAPSE
@@ -344,10 +346,15 @@ if __name__ == "__main__":
                 pre_post_diff = post_syn_spike_t - pre_syn_spike_t[j]
                 g_is[j] = g_is[j] + updateGi()
 
-        
+    
+    # plotVoltage(times, V)
 
-    plotVoltage(times, V)
+    print("-----PARTB QUESTION2 HISTOGRAM-----")
+    yaxis = np.arange(0, 40, 1)
+    plt.hist(g_is)
+    plt.show()
 
+    print("-----PARTB QUESTION2 AVERAGE FIRING RATE OF POST NEURON-----")
 
 
 
