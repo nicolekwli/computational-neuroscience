@@ -160,7 +160,31 @@ def simulateNeuron(ss, gs, volt):
 
     return nextVolt
 
+def getVoltages40Syn(stdp):
+    # update each synapse with each voltage, it should affect the same neuron 
+    # (i.e R_m * I_s_1 + R_m * I_s_2 + ... + R_m * I_s_40)
+    for i in range (len(times)):
+        # 40 spikes for 40 synapses
+        spike_train = genSpikeTrain()
+        current = 0
+        if (i != 0):
+            for s in range (1,len(s_i)):
+                if (spike_train[s] == 1):
+                    # s_i(t) = 0.5 + S_i[t-1] + (25 * ms * -s_i[t-1] / tau_s)
+                    #s_i[s] = s_i[s-1] + ds + ((-s_i[s-1] / s_tau) * dt)
+                    s_i[s] = s_i[s-1] + ds
 
+                else :
+                    # (s + dt * (-s/s_tau))
+                    # s_i[s] = updateSynapse(s_i[s-1])
+                    s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                current = current + gbar_i*s_i[s]
+        # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
+        current = R_m * current * (E_s - V[i-1])
+        # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
+        V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
+        if (V[i] >= v_threshold):
+            V[i] = v_rest
 # MAIN ----------------------------------------------------------
 if __name__ == "__main__":
     print("-----PartA Question1-----")
@@ -236,53 +260,18 @@ if __name__ == "__main__":
 
     dt = 0.25 * ms
 
-    # input spike train = independent homogeneous poisson process
-        # with same average firing rate <r>, fixed in time but spikes arrive randomly
-        # getting the rest of the r
-            # draw random number on the unit interval from each synapse at each timestep
-            # if < r dt ->> spike has occured
-            # r dt needs to be < 1
     r = 15  * Hz
-    
-    # print(spike_train)
 
     # initialise ss and gs
     s_i = np.zeros(40)
     g_is = np.zeros(40)
-    #g_is.fill(g_i)
+    # g_is.fill(gbar_i)
 
     V = np.zeros(len(times))
     V[0] = 0
-    # update each synapse with each voltage, it should affect the same neuron 
-    # (i.e R_m * I_s_1 + R_m * I_s_2 + ... + R_m * I_s_40)
-    for i in range (1,len(times)):
-        # 40 spikes for 40 synapses
-        spike_train = genSpikeTrain()
-        current = 0
-        for s in range (1,len(s_i)):
-            if (spike_train[s] == 1):
-                # s_i(t) = 0.5 + S_i[t-1] + (25 * ms * -s_i[t-1] / tau_s)
-                #s_i[s] = s_i[s-1] + ds + ((-s_i[s-1] / s_tau) * dt)
-                s_i[s] = s_i[s-1] + ds
-
-            else :
-                # (s + dt * (-s/s_tau))
-                # s_i[s] = updateSynapse(s_i[s-1])
-                s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
-
-            
-            # do everything but for all 40 synapses at the same tie
-            current = current + gbar_i*s_i[s]
-            # get one votlage
-        # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
-        current = R_m * current * (E_s - V[i-1])
-        # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
-        V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
-        if (V[i] >= v_threshold):
-            V[i] = v_rest
-
-        # Get Voltage using synapses
-        # V[i] = simulateNeuron(s_i, g_is, V[i-1])
+    
+    stdp = False
+    getVoltages40Syn(stdp)
 
     plotVoltage(times, V)
 
@@ -290,6 +279,66 @@ if __name__ == "__main__":
     print("-----PARTB QUESTION2-----")
     pre_syn_spike_t = 0
     post_syn_spike_t = 0
+
+    # pre-before post timings are +ve
+    # post-before pre timings are -ve
+    pre_post_diff = post_syn_spike_t - pre_syn_spike_t
+
+    # to change synaptic conductance
+    # gbar_syn = gbar_syn + f(dt)
+    # f(dt) = 
+    a_plus = 0.2
+    a_min = 0.25
+    tau_plus = 20 * ms
+    tau_min = 20 * ms
+
+    # Synaptic strength updates -> nearest neighbour principle
+    # Only include most recent pre, post spikes in weight update calc
+    
+    # impose hard limits on synaptic strength 
+        # if synaptic wight < 0 = 0
+        # if synaptic wight > 4 = 4
+
+    # potentiation happens at all synapses when post syn spike occurs
+    # depression happens at syn that receives a pre syn spike
+
+    # true 
+        # every spike(pre and post) triggeres changes in the max conductance of activated synapses according to rule 
+    # false
+        # fixed synaptic strength      
+    stdp = True 
+    gbar_i = 4
+    g_is = np.zeros(40)
+    g_is.fill(gbar_i)
+
+    r = 15  * Hz
+
+    duration = 300 * sec
+    dt = 0.25 * ms
+    times = np.arange(0, duration + dt, dt)
+
+    for i in range (len(times)):
+        # 40 spikes for 40 synapses
+        spike_train = genSpikeTrain()
+        current = 0
+        if (i != 0):
+            for s in range (1,len(s_i)):
+                if (spike_train[s] == 1):
+                    # s_i(t) = 0.5 + S_i[t-1] + (25 * ms * -s_i[t-1] / tau_s)
+                    #s_i[s] = s_i[s-1] + ds + ((-s_i[s-1] / s_tau) * dt)
+                    s_i[s] = s_i[s-1] + ds
+
+                else :
+                    # (s + dt * (-s/s_tau))
+                    # s_i[s] = updateSynapse(s_i[s-1])
+                    s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                current = current + g_is[s]*s_i[s]
+        # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
+        current = R_m * current * (E_s - V[i-1])
+        # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
+        V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
+        if (V[i] >= v_threshold):
+            V[i] = v_rest
 
 
 
