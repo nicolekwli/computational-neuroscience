@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+import math as m
 import random
 # Part A 
     # Question 1
@@ -185,6 +185,15 @@ def getVoltages40Syn(stdp):
         V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
         if (V[i] >= v_threshold):
             V[i] = v_rest
+
+# QUESTION B2---------------------------------------------------
+def updateGi():
+    delta_t = 0
+    if (pre_post_diff > 0):
+        delta_t = a_plus * m.exp(- (abs(pre_post_diff)) / tau_plus)
+    else:
+        delta_t = -a_min * m.exp(- (abs(pre_post_diff)) / tau_min)
+    return delta_t
 # MAIN ----------------------------------------------------------
 if __name__ == "__main__":
     print("-----PartA Question1-----")
@@ -273,39 +282,22 @@ if __name__ == "__main__":
     stdp = False
     getVoltages40Syn(stdp)
 
-    plotVoltage(times, V)
+    # plotVoltage(times, V)
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION2-----")
-    pre_syn_spike_t = 0
-    post_syn_spike_t = 0
+    pre_syn_spike_t = np.zeros(40)
+    post_syn_spike_t = -1000
 
     # pre-before post timings are +ve
     # post-before pre timings are -ve
     pre_post_diff = post_syn_spike_t - pre_syn_spike_t
 
-    # to change synaptic conductance
-    # gbar_syn = gbar_syn + f(dt)
-    # f(dt) = 
     a_plus = 0.2
     a_min = 0.25
     tau_plus = 20 * ms
     tau_min = 20 * ms
 
-    # Synaptic strength updates -> nearest neighbour principle
-    # Only include most recent pre, post spikes in weight update calc
-    
-    # impose hard limits on synaptic strength 
-        # if synaptic wight < 0 = 0
-        # if synaptic wight > 4 = 4
-
-    # potentiation happens at all synapses when post syn spike occurs
-    # depression happens at syn that receives a pre syn spike
-
-    # true 
-        # every spike(pre and post) triggeres changes in the max conductance of activated synapses according to rule 
-    # false
-        # fixed synaptic strength      
     stdp = True 
     gbar_i = 4
     g_is = np.zeros(40)
@@ -317,6 +309,9 @@ if __name__ == "__main__":
     dt = 0.25 * ms
     times = np.arange(0, duration + dt, dt)
 
+    V = np.zeros(len(times))
+    V[0] = 0
+
     for i in range (len(times)):
         # 40 spikes for 40 synapses
         spike_train = genSpikeTrain()
@@ -327,18 +322,32 @@ if __name__ == "__main__":
                     # s_i(t) = 0.5 + S_i[t-1] + (25 * ms * -s_i[t-1] / tau_s)
                     #s_i[s] = s_i[s-1] + ds + ((-s_i[s-1] / s_tau) * dt)
                     s_i[s] = s_i[s-1] + ds
+                    pre_syn_spike_t[s] = times[i]
+                    pre_post_diff = post_syn_spike_t - pre_syn_spike_t[s]
+                    # UPDATE ACCORSING TH DIFF OR JUST DEPRESSION AND THINGY
+                    g_is[s] = g_is[s] + updateGi()
 
                 else :
-                    # (s + dt * (-s/s_tau))
-                    # s_i[s] = updateSynapse(s_i[s-1])
                     s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+
                 current = current + g_is[s]*s_i[s]
+    
         # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
         current = R_m * current * (E_s - V[i-1])
         # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
         V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
         if (V[i] >= v_threshold):
             V[i] = v_rest
+            post_syn_spike_t = times[i]
+            # NEED TO UPDATE EVERY SYNAPSE
+            for j in range (40):
+                pre_post_diff = post_syn_spike_t - pre_syn_spike_t[j]
+                g_is[j] = g_is[j] + updateGi()
+
+        
+
+    plotVoltage(times, V)
+
 
 
 
