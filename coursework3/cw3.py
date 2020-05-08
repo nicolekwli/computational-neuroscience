@@ -160,7 +160,9 @@ def simulateNeuron(ss, gs, volt):
 
     return nextVolt
 
+# THIS IS CURRENTLY FOR OFF
 def getVoltages40Syn(stdp):
+    fire_rate_30 = 0
     # update each synapse with each voltage, it should affect the same neuron 
     for i in range (len(times)):
         # 40 spikes for 40 synapses
@@ -169,13 +171,9 @@ def getVoltages40Syn(stdp):
         if (i != 0):
             for s in range (1,len(s_i)):
                 if (spike_train[s] == 1):
-                    # s_i(t) = 0.5 + S_i[t-1] + (25 * ms * -s_i[t-1] / tau_s)
-                    #s_i[s] = s_i[s-1] + ds + ((-s_i[s-1] / s_tau) * dt)
                     s_i[s] = s_i[s-1] + ds
 
                 else :
-                    # (s + dt * (-s/s_tau))
-                    # s_i[s] = updateSynapse(s_i[s-1])
                     s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
                 current = current + gbar_i*s_i[s]
         # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
@@ -184,6 +182,10 @@ def getVoltages40Syn(stdp):
         V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
         if (V[i] >= v_threshold):
             V[i] = v_rest
+            if (times[i] >= 270.0):
+                fire_rate_30 += 1
+
+    return fire_rate_30
 
 # QUESTION B2---------------------------------------------------
 def updateGi():
@@ -279,16 +281,14 @@ if __name__ == "__main__":
     V[0] = 0
     
     stdp = False
-    #getVoltages40Syn(stdp)
-    # plotVoltage(times, V)
+    a = getVoltages40Syn(stdp)
+    plotVoltage(times, V)
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION2-----")
     pre_syn_spike_t = np.zeros(40)
     post_syn_spike_t = -1000
 
-    # pre-before post timings are +ve
-    # post-before pre timings are -ve
     pre_post_diff = post_syn_spike_t - pre_syn_spike_t
 
     a_plus = 0.2
@@ -313,10 +313,9 @@ if __name__ == "__main__":
     V[0] = 0
 
     fire_rate = []
-    # check if length is suration/10*sex
     loop_count = 0
-    # 10 * sec / dt
     fire_count = 0
+    fire_rate_30 = 0
     for i in range (len(times)):
         spike_train = genSpikeTrain()
         current = 0
@@ -334,10 +333,8 @@ if __name__ == "__main__":
                 current = current + g_is[s]*s_i[s]
     
         current = R_m * current * (E_s - V[i-1])
-        # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
         V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
         if (V[i] >= v_threshold):
-            # ---------------------------------------GET FIRING RATE (10 second time bins) get from cw2 count spikes with spike times ------------------------------
             V[i] = v_rest
             fire_count += 1
             post_syn_spike_t = times[i]
@@ -345,6 +342,8 @@ if __name__ == "__main__":
             for j in range (40):
                 pre_post_diff = post_syn_spike_t - pre_syn_spike_t[j]
                 g_is[j] = g_is[j] + updateGi()
+            if (times[i] >= 270.0):
+                fire_rate_30 += 1
 
         loop_count += 1
         if (loop_count == (10*sec/dt)):
@@ -361,15 +360,58 @@ if __name__ == "__main__":
     #plt.show()
 
     print("-----PARTB QUESTION2 AVERAGE FIRING RATE OF POST NEURON-----")
-    fire_rate[:] = [f / len(fire_rate) for f in fire_rate]
+    #fire_rate[:] = [f / len(fire_rate) for f in fire_rate]
 
-    x = np.arange(0, duration, 10)
+    # x = np.arange(0, duration, 10)
     # plt.plot(x, fire_rate)
     # plt.show()
+    print("-----PARTB QUESTION2 FIRING RATE OF POST NEURON 30 Seconds-----")
+
+    print("-----PARTB QUESTION2 STDP OFF-----")
+    pre_syn_spike_t = np.zeros(40)
+    post_syn_spike_t = -1000
+
+    pre_post_diff = post_syn_spike_t - pre_syn_spike_t
+
+    a_plus = 0.2
+    a_min = 0.25
+    tau_plus = 20 * ms
+    tau_min = 20 * ms
+
+    stdp = True 
+    
+    g_avg = np.mean(g_is)
+    gbar_i = g_avg
+    g_is = np.zeros(40)
+    g_is.fill(g_avg)
+
+    s_i = np.zeros(40)
+
+    r = 15  * Hz
+
+    duration = 300 * sec
+    dt = 0.25 * ms
+    times = np.arange(0, duration + dt, dt)
+
+    V = np.zeros(len(times))
+    V[0] = 0
+
+    fire_rate = []
+    # check if length is suration/10*sex
+    loop_count = 0
+    # 10 * sec / dt
+    fire_count = 0
+    fire_rate_30 = 0 
+
+    stdp = False
+    # fire_rate_30 = getVoltages40Syn(stdp)
+    # plotVoltage(times, V)
+
+    print("-----PARTB QUESTION2 FIRING RATE OF POST NEURON OFF 30 Seconds-----")
+    # print(fire_rate_30)
 
 
-
-
+    print("-----PARTB QUESTION3-----")
 
 
 
