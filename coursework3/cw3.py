@@ -35,32 +35,48 @@ ohms = 0.001
 
 
 # QUESTION A1---------------------------------------------------------
-# V(t + dt) = V(T) + dt(f(V,t))
-def getVoltageForTimes():
-    V = np.zeros(len(times))
-
-    for i in range (len(times)):
-        if (i == 0):
-            V[i] = 0
-        else:
-            # v(i-1) + dv/dt * dt
-            V[i] = V[i-1] + ((E_L - V[i-1] + (m_resistance * I_e)) / m_tau) * dt
-   
-        if (V[i] >= v_threshold):
-            V[i] = v_rest
-
-    return V
-
-def plotVoltage(times, V):
-    plt.plot(times, V)
-
-    plt.title('Integrate-and-Fire')
-    plt.xlabel('Time (msec)')
-    plt.ylabel('Membrane Potential (V)')
-    plt.show()
-
 def A1():
-    pass
+    # V(t + dt) = V(T) + dt(f(V,t))
+    def getVoltageForTimes():
+        V = np.zeros(len(times))
+
+        for i in range (len(times)):
+            if (i == 0):
+                V[i] = 0
+            else:
+                # v(i-1) + dv/dt * dt
+                V[i] = V[i-1] + ((E_L - V[i-1] + (m_resistance * I_e)) / m_tau) * dt
+    
+            if (V[i] >= v_threshold):
+                V[i] = v_rest
+
+        return V
+
+    def plotVoltage(times, V):
+        plt.plot(times, V)
+
+        plt.title('Integrate-and-Fire')
+        plt.xlabel('Time (msec)')
+        plt.ylabel('Membrane Potential (V)')
+        plt.show()
+
+    m_tau = 10 * ms
+
+    E_L = -70 * mV
+    v_rest = -70 * mV
+    v_threshold = -40 * mV
+    m_resistance = 10 * ohms # m_omega
+
+    I_e = 3.1  # nA
+
+    duration = 1 * sec
+    dt = 0.25 * ms
+    times = np.arange(0, duration + dt, dt)
+
+    refrac = 0
+
+    V = getVoltageForTimes()
+    plotVoltage(times, V)
 
 
 # QUESTION A2---------------------------------------------------
@@ -289,6 +305,7 @@ def updateGi(pre_post_diff):
 # MAIN ----------------------------------------------------------
 if __name__ == "__main__":
     print("-----PartA Question1-----")
+    A1()
     
     # m_tau = 10 * ms
 
