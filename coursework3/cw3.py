@@ -312,20 +312,20 @@ if __name__ == "__main__":
     V = np.zeros(len(times))
     V[0] = 0
 
-    fire_rate = np.zeros(duration / 10*sec)
+    fire_rate = []
+    # check if length is suration/10*sex
+    loop_count = 0
+    # 10 * sec / dt
+    fire_count = 0
     for i in range (len(times)):
-        # 40 spikes for 40 synapses
         spike_train = genSpikeTrain()
         current = 0
         if (i != 0):
             for s in range (1,len(s_i)):
                 if (spike_train[s] == 1):
-                    # s_i(t) = 0.5 + S_i[t-1] + (25 * ms * -s_i[t-1] / tau_s)
-                    #s_i[s] = s_i[s-1] + ds + ((-s_i[s-1] / s_tau) * dt)
                     s_i[s] = s_i[s-1] + ds
                     pre_syn_spike_t[s] = times[i]
                     pre_post_diff = post_syn_spike_t - pre_syn_spike_t[s]
-                    # UPDATE ACCORSING TH DIFF OR JUST DEPRESSION AND THINGY
                     g_is[s] = g_is[s] + updateGi()
 
                 else :
@@ -333,27 +333,39 @@ if __name__ == "__main__":
 
                 current = current + g_is[s]*s_i[s]
     
-        # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
         current = R_m * current * (E_s - V[i-1])
         # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
         V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
         if (V[i] >= v_threshold):
             # ---------------------------------------GET FIRING RATE (10 second time bins) get from cw2 count spikes with spike times ------------------------------
             V[i] = v_rest
+            fire_count += 1
             post_syn_spike_t = times[i]
-            # NEED TO UPDATE EVERY SYNAPSE
+            
             for j in range (40):
                 pre_post_diff = post_syn_spike_t - pre_syn_spike_t[j]
                 g_is[j] = g_is[j] + updateGi()
+
+        loop_count += 1
+        if (loop_count == (10*sec/dt)):
+            fire_rate.append(fire_count)
+            loop_count = 0
+            fire_count = 0
+
 
     
     # plotVoltage(times, V)
 
     print("-----PARTB QUESTION2 HISTOGRAM-----")
-    plt.hist(g_is)
-    plt.show()
+    #plt.hist(g_is)
+    #plt.show()
 
     print("-----PARTB QUESTION2 AVERAGE FIRING RATE OF POST NEURON-----")
+    fire_rate[:] = [f / len(fire_rate) for f in fire_rate]
+
+    x = np.arange(0, duration, 10)
+    # plt.plot(x, fire_rate)
+    # plt.show()
 
 
 
