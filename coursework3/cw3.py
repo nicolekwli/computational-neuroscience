@@ -56,9 +56,10 @@ def A1():
         plt.plot(times, V)
 
         plt.title('Integrate-and-Fire')
-        plt.xlabel('Time (msec)')
+        plt.xlabel('Time (sec)')
         plt.ylabel('Membrane Potential (V)')
-        plt.show()
+        # plt.show()
+        plt.savefig('A1')
 
     m_tau = 10 * ms
 
@@ -82,8 +83,8 @@ def A1():
 # QUESTION A2---------------------------------------------------
 def A2():
     def simulateTwoNeurons():
-        S_12 = np.zeros(len(times))
-        S_21 = np.zeros(len(times))
+        S_1 = np.zeros(len(times))
+        S_2 = np.zeros(len(times))
 
         V_1 = np.zeros(len(times))
         V_1[0] = (random.randint(int(v_rest / mV), int(v_threshold /mV))) * mV
@@ -92,55 +93,58 @@ def A2():
 
         for i in range (len(times)):
             if (i == 0):
-                S_12[i] = 0
-                S_21[i] = 0
+                S_1[i] = 0
+                S_2[i] = 0
 
             else:
-                # need to update s for n1 then use that to get current 
-                current = getSynapseCurrent(V_1[i-1], S_21[i])
-                V_1[i] = getVoltage(V_1[i-1], current)
+                if (V_1[i-1] == v_rest):
+                    S_2[i] = S_2[i-1] + updateSynapse(S_2[i-1]) + P
+                else:
+                    S_2[i] = S_2[i-1] + updateSynapse(S_2[i-1])
 
-                if (V_1[i] >= v_threshold):
-                    V_1[i] = v_rest
-                    S_12[i] = S_12[i-1] + P
-                    # print(V_1[i])
-
-                else :
-                    S_12[i] = updateSynapse(S_12[i-1])
-
-                
-                current = getSynapseCurrent(V_2[i], S_12[i])
-                V_2[i] = getVoltage(V_2[i-1], current)
+                current = getSynapseCurrent(V_2[i-1], S_2[i])
+                V_2[i] = V_2[i-1] + getVoltage(V_2[i-1], current)
 
                 if (V_2[i] >= v_threshold):
                     V_2[i] = v_rest
-                    S_21[i] = S_21[i-1] + P
+
+                #-------------------------------------------------
+
+                if (V_2[i-1] == v_rest):
+                    S_1[i] = S_1[i-1] + updateSynapse(S_1[i-1]) + P
                 else:
-                    S_21[i] = updateSynapse(S_21[i-1])
+                    S_1[i] = S_1[i-1] + updateSynapse(S_1[i-1])
+
+                current = getSynapseCurrent(V_1[i-1], S_1[i])
+                V_1[i] = V_1[i-1] + getVoltage(V_1[i-1], current)
+
+                if (V_1[i] >= v_threshold):
+                    V_1[i] = v_rest
+
 
         return V_1, V_2
 
     def getVoltage(volt, sypCur):
-        nextVolt = volt + (E_L - volt + Rm_Ie + sypCur) / m_tau * dt
+        nextVolt = (E_L - volt + Rm_Ie + sypCur) / m_tau * dt
         return nextVolt
 
     def updateSynapse(s):
-        return (s + dt * (-s/s_tau))
+        return (dt * (-s/s_tau))
 
-    # This is Is(t) = gs * s(t) * (Es - V)
     def getSynapseCurrent(volt, s):
-        # g_bar_x * s(t) * (Es - V)
         Is_t = Rm_Gs * s * (E_s - volt)
         return Is_t
 
     def plotVoltage2(times, V, V1):
-        plt.plot(times, V)
-        plt.plot(times, V1)
+        plt.plot(times, V, color="b", label="neuron 1")
+        plt.plot(times, V1, color="c", label="neuron 2")
 
         plt.title('Simulation of two neurons')
-        plt.xlabel('Time (msec)')
+        plt.xlabel('Time (sec)')
         plt.ylabel('Membrane Potential (V)')
-        plt.show()
+        #plt.show()
+        plt.legend(loc="upper left")
+        plt.savefig('A2 Inhib')
 
     duration = 1 * sec
     dt = 0.25 * ms
@@ -162,8 +166,8 @@ def A2():
     # Excitatory
     E_s = 0 * mV
 
-    V_1, V_2 = simulateTwoNeurons()
-    plotVoltage2(times, V_1, V_2)
+    #V_1, V_2 = simulateTwoNeurons()
+    #plotVoltage2(times, V_1, V_2)
 
     # Inhibitory 
     E_s = -80 * mV
@@ -636,7 +640,7 @@ if __name__ == "__main__":
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTA QUESTION2-----")
-    # A2()
+    A2()
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION1-----")
@@ -644,7 +648,7 @@ if __name__ == "__main__":
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION2 STDP ON-----")
-    g_is_from_on = B2_on()
+    #g_is_from_on = B2_on()
     
     print("-----PARTB QUESTION2 HISTOGRAM-----")
     #plt.hist(g_is)
@@ -659,8 +663,8 @@ if __name__ == "__main__":
     print("-----PARTB QUESTION2 FIRING RATE OF POST NEURON 30 Seconds-----")
 
     print("-----PARTB QUESTION2 STDP OFF-----")
-    g_avg = np.mean(g_is_from_on)
-    B2_Off_with_On_Results(g_avg)
+    #g_avg = np.mean(g_is_from_on)
+    #B2_Off_with_On_Results(g_avg)
 
     
     print("-----PARTB QUESTION2 FIRING RATE OF POST NEURON OFF 30 Seconds-----")
@@ -668,7 +672,7 @@ if __name__ == "__main__":
 
 
     print("-----PARTB QUESTION3 ON 10Hz-----")
-    B3_On_10()
+    #B3_On_10()
 
 
 
