@@ -29,8 +29,10 @@ Hz = 1.0
 sec = 1.0
 ms = 0.001
 mV = 0.001   # millivolt
-nA = 0.000000001
-ohms = 0.001
+
+nA = 10**(-9)
+ohms = 10**6
+nS = 10**(-9)
 
 
 
@@ -42,7 +44,7 @@ def A1():
 
         for i in range (len(times)):
             if (i == 0):
-                V[i] = 0
+                V[i] = v_rest
             else:
                 # v(i-1) + dv/dt * dt
                 V[i] = V[i-1] + ((E_L - V[i-1] + (m_resistance * I_e)) / m_tau) * dt
@@ -231,7 +233,7 @@ def B1():
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ds
+                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
 
                     else :
                         s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
@@ -265,7 +267,7 @@ def B1():
     I_e = 0
 
     s_tau = 2 * ms  # decay time constant
-    gbar_i = 4     # initial peak conductance nanaSeimens (strength)
+    gbar_i = 4 * nS    # initial peak conductance nanaSeimens (strength)
     E_s = 0
     ds = 0.5
 
@@ -279,7 +281,7 @@ def B1():
     # g_is.fill(gbar_i)
 
     V = np.zeros(len(times))
-    V[0] = 0
+    V[0] = v_rest
     
     a = getVoltagesB1()
     print(a)
@@ -298,10 +300,11 @@ def B2_on():
         plt.show()
 
     def plotSynWeightHist(g_is):
+        print(g_is)
         plt.title('Steady-State Synaptic Weights')
         plt.hist(g_is, density=True, bins=10)
         #plt.show()
-        # plt.savefig('ssss6')
+        plt.savefig('ssss1')
 
     def plotAvgFireRate300(fires):
         timesBins = np.arange(0, 300, 10)
@@ -309,6 +312,7 @@ def B2_on():
 
         # divide by 10 seconds
         fires[:] = [f / 10 for f in fires]
+        print(fires)
 
         plt.title('Average firing rate')
 
@@ -317,7 +321,7 @@ def B2_on():
         plt.plot(timesBins, fires)
         
         # plt.show()
-        plt.savefig('firerate300')
+        plt.savefig('firerate300_a2')
 
     def plotAvgFireRate30(fires):
         print(fires)
@@ -356,73 +360,58 @@ def B2_on():
         return delta_t
 
     def getVoltages40Syn_On():
-        # loop_count = 0 
-
         fire_index = 0
         fire_count = 0
         fire_rate_300 = np.zeros(30)
         
-        # we have variables for the 300s need one for the last 30s
         fire_rate_30 = 0
-        #fire_rate_30 = np.zeros(30)
-        #fire_30_index = 0
-        #fire_30_count = 0
         for i in range (len(times)):
             spike_train = genSpikeTrain()
-            current = 0
+            current = np.zeros(40)
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ds
-                        if (s_i[s] < 0):
-                            s_i[s] = 0
-                        if (s_i[s] > 4):
-                            s_i[s] = 4
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt) + ds
+
                         pre_syn_spike_t[s] = times[i]
                         pre_post_diff = post_syn_spike_t - pre_syn_spike_t[s]
                         # depression
                         g_is[s] = g_is[s] + updateGi(pre_post_diff)
+                        if (g_is[s] < 0):
+                            g_is[s] = 0
+                        if (g_is[s] > 4 * nS):
+                            g_is[s] = 4 * nS
 
                     else :
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
-                        if (s_i[s] < 0):
-                            s_i[s] = 0
-                        if (s_i[s] > 4):
-                            s_i[s] = 4
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt)
 
-                    current = current + g_is[s]*s_i[s]
+                    current[s] = g_is[s]*s_i[s]
         
-            current = R_m * current * (E_s - V[i-1])
-            V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
+            V[i] = V[i-1] + (E_L - V[i-1] + np.sum(current) * R_m * (E_s - V[i-1])) * dt / m_tau
             if (V[i] >= v_threshold):
                 V[i] = v_rest
-                fire_count += 1
                 post_syn_spike_t = times[i]
                 
                 for j in range (40):
                     # potentiation
                     pre_post_diff = post_syn_spike_t - pre_syn_spike_t[j]
                     g_is[j] = g_is[j] + updateGi(pre_post_diff)
+
+                    if (g_is[j] < 0):
+                        g_is[j] = 0
+                    if (g_is[j] > 4 * nS):
+                        g_is[j] = 4 * nS
+
                 fire_rate_300[fire_index] = fire_rate_300[fire_index] + 1.0
 
                 if (times[i] >= 270.0):
                     fire_rate_30 = fire_rate_30 +  1
-                   #  fire_rate_30[fire_30_index] = fire_rate_30[fire_30_index] + 1.0
 
-            # loop_count += 1
             fire_count += 1
             
-            if (fire_count == (30/dt)):
-                # loop_count = 0
+            if (fire_count == (10.0/dt)):
                 fire_count = 0
                 fire_index += 1
-            '''
-            if (times[i] >= 270.0):
-                fire_30_count += 1
-                if (fire_30_count == (1/dt)):
-                    fire_30_count = 0
-                    fire_30_index += 1
-            '''
         return fire_rate_300, fire_rate_30
 
     # neuron params
@@ -445,13 +434,13 @@ def B2_on():
 
     pre_post_diff = post_syn_spike_t - pre_syn_spike_t
 
-    a_plus = 0.2
-    a_min = 0.25
+    a_plus = 0.2 * nS
+    a_min = 0.25 * nS
     tau_plus = 20 * ms
     tau_min = 20 * ms
 
-    stdp = True 
-    gbar_i = 4
+    # stdp = True 
+    gbar_i = 4 * nS
     g_is = np.zeros(40)
     g_is.fill(gbar_i)
 
@@ -464,19 +453,21 @@ def B2_on():
     times = np.arange(0, duration + dt, dt)
 
     V = np.zeros(len(times))
-    V[0] = 0
+    V[0] = v_rest
 
-    fire_rate = []
-    loop_count = 0
-    fire_count = 0
     fire_rate_300, fire_rate_30 = getVoltages40Syn_On()
+
+    print("-----PARTB QUESTION2 HISTOGRAM-----")
+    plotSynWeightHist(g_is)
     
-    # plotAvgFireRate300(fire_rate_300)
-    print(fire_rate_30)
-    print(fire_rate_30/30)
+    print("-----PARTB QUESTION2 firing rate 300-----")
+    #plotAvgFireRate300(fire_rate_300)
+    
+    #print(fire_rate_30)
+    #print(fire_rate_30/30)
     #plotAvgFireRate30(fire_rate_30)
     # plotVoltage(times, V)
-    #plotSynWeightHist(g_is)
+    
 
     return g_is
 
@@ -537,18 +528,11 @@ def B2_Off_with_On_Results(g_avg):
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ds
-                        if (s_i[s] < 0):
-                            s_i[s] = 0
-                        if (s_i[s] > 4):
-                            s_i[s] = 4
+                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
 
                     else :
                         s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
-                        if (s_i[s] < 0):
-                            s_i[s] = 0
-                        if (s_i[s] > 4):
-                            s_i[s] = 4
+                       
                     current = current + g_is[s]*s_i[s]
             # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
             current = R_m * current * (E_s - V[i-1])
@@ -589,8 +573,8 @@ def B2_Off_with_On_Results(g_avg):
 
     pre_post_diff = post_syn_spike_t - pre_syn_spike_t
 
-    a_plus = 0.2
-    a_min = 0.25
+    a_plus = 0.2 * nS
+    a_min = 0.25 * nS
     tau_plus = 20 * ms
     tau_min = 20 * ms
 
@@ -606,7 +590,7 @@ def B2_Off_with_On_Results(g_avg):
     times = np.arange(0, duration + dt, dt)
 
     V = np.zeros(len(times))
-    V[0] = 0
+    V[0] = v_rest
 
     fire_rate = []
     loop_count = 0
@@ -659,21 +643,19 @@ def B3_On_10(r):
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ds
-                        if (s_i[s] < 0):
-                            s_i[s] = 0
-                        if (s_i[s] > 4):
-                            s_i[s] = 4
+                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
+                       
                         pre_syn_spike_t[s] = times[i]
                         pre_post_diff = post_syn_spike_t - pre_syn_spike_t[s]
                         g_is[s] = g_is[s] + updateGi(pre_post_diff)
+                        if (g_is[s] < 0):
+                            g_is[s] = 0
+                        if (g_is[s] > 4 * nS):
+                            g_is[s] = 4 * nS
 
                     else :
                         s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
-                        if (s_i[s] < 0):
-                            s_i[s] = 0
-                        if (s_i[s] > 4):
-                            s_i[s] = 4
+                     
 
                     current = current + g_is[s]*s_i[s]
         
@@ -686,6 +668,10 @@ def B3_On_10(r):
                 for j in range (40):
                     pre_post_diff = post_syn_spike_t - pre_syn_spike_t[j]
                     g_is[j] = g_is[j] + updateGi(pre_post_diff)
+                    if (g_is[s] < 0):
+                        g_is[s] = 0
+                    if (g_is[s] > 4 * nS):
+                        g_is[s] = 4 * nS
                 if (times[i] >= 270.0):
                     fire_rate_30 += 1
         return fire_rate_30
@@ -708,12 +694,12 @@ def B3_On_10(r):
     pre_syn_spike_t = np.zeros(40)
     post_syn_spike_t = -1000
 
-    gbar_i = 4
+    gbar_i = 4 * nS
     g_is = np.zeros(40)
     g_is.fill(gbar_i)
 
-    a_plus = 0.2
-    a_min = 0.25
+    a_plus = 0.2 * nS
+    a_min = 0.25 * nS
     tau_plus = 20 * ms
     tau_min = 20 * ms
 
@@ -724,7 +710,7 @@ def B3_On_10(r):
     times = np.arange(0, duration + dt, dt)
 
     V = np.zeros(len(times))
-    V[0] = 0
+    V[0] = v_rest
 
     # r = 10  * Hz
     fire_rate_30 = getVoltages40Syn_On()
@@ -782,10 +768,7 @@ def B3_Off_10(r):
         # update each synapse with each voltage, it should affect the same neuron 
 
         # we have variables for the 300s need one for the last 30s
-        #fire_rate_30 = np.zeros(30)
         fire_rate_30 = 0
-        #fire_30_index = 0
-        #fire_30_count = 0
         for i in range (len(times)):
             # 40 spikes for 40 synapses
             spike_train = genSpikeTrain()
@@ -793,18 +776,11 @@ def B3_Off_10(r):
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ds
-                        if (s_i[s] < 0):
-                            s_i[s] = 0
-                        if (s_i[s] > 4):
-                            s_i[s] = 4
+                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
 
                     else :
                         s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
-                        if (s_i[s] < 0):
-                            s_i[s] = 0
-                        if (s_i[s] > 4):
-                            s_i[s] = 4
+                     
                     current = current + g_is[s]*s_i[s]
             # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
             current = R_m * current * (E_s - V[i-1])
@@ -843,12 +819,12 @@ def B3_Off_10(r):
     pre_syn_spike_t = np.zeros(40)
     post_syn_spike_t = -1000
 
-    gbar_i = 4
+    gbar_i = 4 * nS
     g_is = np.zeros(40)
     g_is.fill(gbar_i)
 
-    a_plus = 0.2
-    a_min = 0.25
+    a_plus = 0.2 * nS
+    a_min = 0.25 * nS
     tau_plus = 20 * ms
     tau_min = 20 * ms
 
@@ -859,7 +835,7 @@ def B3_Off_10(r):
     times = np.arange(0, duration + dt, dt)
 
     V = np.zeros(len(times))
-    V[0] = 0
+    V[0] = v_rest
 
     fire_rate_30 = getVoltages40Syn_Off()
     print(fire_rate_30)
@@ -867,6 +843,151 @@ def B3_Off_10(r):
     rate = fire_rate_30/30
     return rate
 
+def B4(B):
+    def genSpikeTrain():
+        spikes = np.zeros(40)
+        value = r0 + (B * m.sin(2 * m.pi * f * dt))
+        for s in range (len(spikes)):
+            spike = random.uniform(0.00, 1.00)
+            #spike = random.random()
+            
+            if (spike < dt * value):
+                spikes[s] = 1
+            else:
+                spikes[s] = 0
+        return spikes
+
+    # def genSpikeTrain():
+    #     spikes = np.zeros(40)
+    #     for s in range (len(spikes)):
+    #         spike = random.uniform(0.00, 1.00)
+    #         #spike = random.random()
+            
+    #         if (spike < r*dt):
+    #             spikes[s] = 1
+    #         else:
+    #             spikes[s] = 0
+    #     return spikes
+
+    def updateGi(pre_post_diff):
+        delta_t = 0
+        if (pre_post_diff > 0):
+            delta_t = a_plus * m.exp(- (abs(pre_post_diff)) / tau_plus)
+        else:
+            delta_t = -a_min * m.exp(- (abs(pre_post_diff)) / tau_min)
+        return delta_t
+
+    def getVoltages40Syn_On():
+        fire_rate_30 = 0
+        for i in range (len(times)):
+            spike_train = genSpikeTrain()
+            current = 0
+            if (i != 0):
+                for s in range (1,len(s_i)):
+                    if (spike_train[s] == 1):
+                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
+                     
+                        pre_syn_spike_t[s] = times[i]
+                        pre_post_diff = post_syn_spike_t - pre_syn_spike_t[s]
+                        g_is[s] = g_is[s] + updateGi(pre_post_diff)
+                        if (g_is[s] < 0):
+                            g_is[s] = 0
+                        if (g_is[s] > 4 * nS):
+                            g_is[s] = 4 * nS
+
+                    else :
+                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                      
+
+                    current = current + g_is[s]*s_i[s]
+        
+            current = R_m * current * (E_s - V[i-1])
+            V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
+            if (V[i] >= v_threshold):
+                V[i] = v_rest
+                post_syn_spike_t = times[i]
+                
+                for j in range (40):
+                    pre_post_diff = post_syn_spike_t - pre_syn_spike_t[j]
+                    g_is[j] = g_is[j] + updateGi(pre_post_diff)
+                    if (g_is[s] < 0):
+                        g_is[s] = 0
+                    if (g_is[s] > 4 * nS):
+                        g_is[s] = 4 * nS
+                if (times[i] >= 270.0):
+                    fire_rate_30 += 1
+        return fire_rate_30
+
+    def getVoltages40Syn_Off():
+        # update each synapse with each voltage, it should affect the same neuron 
+
+        # we have variables for the 300s need one for the last 30s
+        fire_rate_30 = 0
+        for i in range (len(times)):
+            # 40 spikes for 40 synapses
+            spike_train = genSpikeTrain()
+            current = 0
+            if (i != 0):
+                for s in range (1,len(s_i)):
+                    if (spike_train[s] == 1):
+                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
+                
+                    else :
+                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                    
+                    current = current + g_is[s]*s_i[s]
+            current = R_m * current * (E_s - V[i-1])
+            V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
+            if (V[i] >= v_threshold):
+                V[i] = v_rest
+                if (times[i] >= 270.0):
+                    fire_rate_30 = fire_rate_30 + 1
+
+        return fire_rate_30
+    # neuron params
+    E_L = -65 * mV
+    v_rest = -65 * mV
+    v_threshold = -50 * mV
+    v_reset = -65 * mV
+
+    # passive membrane leak conductance 
+    R_m = 100 * ohms
+    m_tau = 10 * ms
+
+    s_tau = 2 * ms
+
+    E_s = 0
+    ds = 0.5
+
+    pre_syn_spike_t = np.zeros(40)
+    post_syn_spike_t = -1000
+
+    gbar_i = 4 * nS
+    g_is = np.zeros(40)
+    g_is.fill(gbar_i)
+
+    a_plus = 0.2 * nS
+    a_min = 0.25 * nS
+    tau_plus = 20 * ms
+    tau_min = 20 * ms
+
+    s_i = np.zeros(40)
+
+    duration = 300 * sec
+    dt = 0.25 * ms
+    times = np.arange(0, duration + dt, dt)
+
+    V = np.zeros(len(times))
+    V[0] = v_rest
+
+    r0 = 20  * Hz
+    f = 10 * Hz
+
+
+    # fire_rate_30 = getVoltages40Syn_Off()
+    fire_rate_30 = getVoltages40Syn_On()
+
+    return g_is
 
 # MAIN ----------------------------------------------------------
 if __name__ == "__main__":
@@ -883,11 +1004,11 @@ if __name__ == "__main__":
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION2 STDP ON-----")
-    #g_is_from_on = B2_on()
+    g_is_from_on = B2_on()
     
-    #print("-----PARTB QUESTION2 HISTOGRAM-----")
-    #plt.hist(g_is)
-    #plt.show()
+    # print("-----PARTB QUESTION2 HISTOGRAM-----")
+    # plt.hist(g_is)
+    # plt.show()
 
     #print("-----PARTB QUESTION2 AVERAGE FIRING RATE OF POST NEURON-----")
     #fire_rate[:] = [f / len(fire_rate) for f in fire_rate]
@@ -1010,7 +1131,59 @@ if __name__ == "__main__":
     # plt.savefig('B3 ssss3')
 
 
+
     print("-----PARTB QUESTION4-----")
+    # gs_mean = []
+    # gs_std = []
+
+    # B = 0
+    # results = B4(B)
+    # gs0 = np.mean(results)
+    # gs_mean.append(gs0)
+
+    # gs0 = np.std(results)
+    # gs_std.append(gs0)
+
+    # B = 5
+    # results = B4(B)
+    # gs5 = np.mean(results)
+    # gs_mean.append(gs5)
+
+    # gs5 = np.std(results)
+    # gs_std.append(gs5)
+
+    # B = 10
+    # results = B4(B)
+    # gs10 = np.mean(results)
+    # gs_mean.append(gs10)
+
+    # gs10 = np.std(results)
+    # gs_std.append(gs10)
+
+    # B = 15
+    # results = B4(B)
+    # gs15 = np.mean(results)
+    # gs_mean.append(gs15)
+
+    # gs15 = np.std(results)
+    # gs_std.append(gs15)
+
+    # B = 20
+    # results = B4(B)
+    # gs20 = np.mean(results)
+    # gs_mean.append(gs20)
+
+    # gs20 = np.std(results)
+    # gs_std.append(gs20)
+
+    # bs = [0, 5, 10, 15, 20]
+
+    # plt.title('Steady-State Synaptic Weights Mean')
+    # plt.plot(bs, gs_mean, label="Mean")
+    # plt.plot(bs, gs_std, label="Standard Deviation")
+
+    # plt.legend(loc="upper left")
+    # plt.savefig('B4 ssssballon6')
 
 
      
