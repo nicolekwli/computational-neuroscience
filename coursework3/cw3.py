@@ -528,10 +528,10 @@ def B2_Off_with_On_Results(g_avg):
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt) + ds
 
                     else :
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt)
                        
                     current = current + g_is[s]*s_i[s]
             # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
@@ -643,7 +643,7 @@ def B3_On_10(r):
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt) + ds
                        
                         pre_syn_spike_t[s] = times[i]
                         pre_post_diff = post_syn_spike_t - pre_syn_spike_t[s]
@@ -654,7 +654,7 @@ def B3_On_10(r):
                             g_is[s] = 4 * nS
 
                     else :
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt)
                      
 
                     current = current + g_is[s]*s_i[s]
@@ -776,10 +776,10 @@ def B3_Off_10(r):
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt) + ds
 
                     else :
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt)
                      
                     current = current + g_is[s]*s_i[s]
             # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
@@ -885,7 +885,7 @@ def B4(B):
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt) + ds
                      
                         pre_syn_spike_t[s] = times[i]
                         pre_post_diff = post_syn_spike_t - pre_syn_spike_t[s]
@@ -896,7 +896,7 @@ def B4(B):
                             g_is[s] = 4 * nS
 
                     else :
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt)
                       
 
                     current = current + g_is[s]*s_i[s]
@@ -930,10 +930,10 @@ def B4(B):
             if (i != 0):
                 for s in range (1,len(s_i)):
                     if (spike_train[s] == 1):
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt) + ds
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt) + ds
                 
                     else :
-                        s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
+                        s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt)
                     
                     current = current + g_is[s]*s_i[s]
             current = R_m * current * (E_s - V[i-1])
