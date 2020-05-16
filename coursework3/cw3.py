@@ -12,15 +12,8 @@ import random
             # V_th  = -40mV             ----- Threshold
             # R_m   = 10 M_omega        ----- Membrane resistance (1/conductance)
             # I_e   = 3.1 nA            ----- input current?
-        
-        # Use Euler's method with timestep delta_t = 0.25ms
-        # Assume no refractory period
-        #Ans1: Plot voltage as a function of time
-
 
 # Cm: total membrane capacitance
-# V = membrane potential
-# tau_m = RmCm
 
 Hz = 1.0
 sec = 1.0
@@ -30,7 +23,6 @@ mV = 0.001   # millivolt
 nA = 10**(-9)
 ohms = 10**6
 nS = 10**(-9)
-
 
 
 # QUESTION A1---------------------------------------------------------
@@ -231,7 +223,6 @@ def B1():
     R_m = 100 * ohms
     m_tau = 10 * ms
 
-    # do not include input current
     I_e = 0
 
     s_tau = 2 * ms  # decay time constant
@@ -255,13 +246,10 @@ def B1():
     print(a)
     plotVoltage(times, V)
 
-
-
 # QUESTION B2 ON---------------------------------------------------
 def B2_on():
     def plotVoltage(times, V):
         plt.plot(times, V)
-
         plt.title('Integrate-and-Fire')
         plt.xlabel('Time (sec)')
         plt.ylabel('Membrane Potential (V)')
@@ -278,7 +266,6 @@ def B2_on():
 
     def plotAvgFireRate300(fires):
         timesBins = np.arange(0, 300, 10)
-        # numberOfSpikesTotal = 10/dt
 
         # divide by 10 seconds
         fires[:] = [f / 10 for f in fires]
@@ -301,7 +288,6 @@ def B2_on():
         print(np.mean(fires))
 
         plt.title('firing rate')
-
         plt.xlabel('Time (sec)')
         plt.ylabel('Firing Rate')
         plt.plot(timesBins, fires)
@@ -313,8 +299,6 @@ def B2_on():
         spikes = np.zeros(40)
         for s in range (len(spikes)):
             spike = random.uniform(0.00, 1.00)
-            #spike = random.random()
-            
             if (spike < r*dt):
                 spikes[s] = 1
             else:
@@ -438,7 +422,6 @@ def B2_on():
     #plotAvgFireRate30(fire_rate_30)
     # plotVoltage(times, V)
     
-
     return g_is
 
 # QUESTION B2 OFF---------------------------------------------------
@@ -452,11 +435,9 @@ def B2_Off_with_On_Results(g_avg):
         plt.show()
 
     def plotAvgFireRate30(fires):
-        print('fire rate for off')
         print(fires)
         timesBins = np.arange(270, 300, 1)
 
-        # number = 1.0 / dt
 
         fires[:] = [f / 30 for f in fires]
         print(np.mean(fires))
@@ -474,8 +455,6 @@ def B2_Off_with_On_Results(g_avg):
         spikes = np.zeros(40)
         for s in range (len(spikes)):
             spike = random.uniform(0.00, 1.00)
-            #spike = random.random()
-            
             if (spike < r*dt):
                 spikes[s] = 1
             else:
@@ -484,14 +463,9 @@ def B2_Off_with_On_Results(g_avg):
 
     # THIS IS CURRENTLY FOR OFF
     def getVoltages40Syn_Off():
-        # update each synapse with each voltage, it should affect the same neuron 
-
-        # we have variables for the 300s need one for the last 30s
-        #fire_rate_30 = np.zeros(30)
         fire_rate_30 = 0
 
         for i in range (len(times)):
-            # 40 spikes for 40 synapses
             spike_train = genSpikeTrain()
             current = np.zeros(40)
             if (i != 0):
@@ -503,21 +477,11 @@ def B2_Off_with_On_Results(g_avg):
                         s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt)
                        
                     current[s] = g_is[s]*s_i[s]
-            # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
             V[i] = V[i-1] + (E_L - V[i-1] + np.sum(current) * R_m * (E_s - V[i-1])) * dt / m_tau
             if (V[i] >= v_threshold):
                 V[i] = v_rest
                 if (times[i] >= 270.0):
                     fire_rate_30 = fire_rate_30 + 1
-                    #fire_rate_30[fire_30_index] = fire_rate_30[fire_30_index] + 1.0
-            '''
-            if (times[i] >= 270.0):
-                fire_30_count += 1
-                if (fire_30_count == (1/dt)):
-                    fire_30_count = 0
-                    fire_30_index += 1
-                    '''
-
         return fire_rate_30
 
     # neuron params
@@ -576,7 +540,6 @@ def B2_Off_with_On_Results(g_avg):
 def B3_On_10(r):
     def plotVoltage(times, V):
         plt.plot(times, V)
-
         plt.title('Integrate-and-Fire')
         plt.xlabel('Time (msec)')
         plt.ylabel('Membrane Potential (V)')
@@ -586,8 +549,7 @@ def B3_On_10(r):
         spikes = np.zeros(40)
         for s in range (len(spikes)):
             spike = random.uniform(0.00, 1.00)
-            #spike = random.random()
-            
+
             if (spike < r*dt):
                 spikes[s] = 1
             else:
@@ -685,9 +647,6 @@ def B3_On_10(r):
     print(fire_rate_30/30)
     rate = fire_rate_30
     return rate, g_is
-    
-
-    # plotVoltage(times, V)
 
 # QUESTION B3 ON---------------------------------------------------
 def B3_Off_10(r):
@@ -703,8 +662,6 @@ def B3_Off_10(r):
         print('fire rate for off')
         print(fires)
         timesBins = np.arange(270, 300, 1)
-
-        # number = 1.0 / dt
 
         fires[:] = [f / 30 for f in fires]
         print(np.mean(fires))
@@ -722,19 +679,13 @@ def B3_Off_10(r):
         spikes = np.zeros(40)
         for s in range (len(spikes)):
             spike = random.uniform(0.00, 1.00)
-            #spike = random.random()
-            
             if (spike < r*dt):
                 spikes[s] = 1
             else:
                 spikes[s] = 0
         return spikes
 
-    # THIS IS CURRENTLY FOR OFF
     def getVoltages40Syn_Off():
-        # update each synapse with each voltage, it should affect the same neuron 
-
-        # we have variables for the 300s need one for the last 30s
         fire_rate_30 = 0
         for i in range (len(times)):
             # 40 spikes for 40 synapses
@@ -749,22 +700,12 @@ def B3_Off_10(r):
                         s_i[s] = s_i[s] + ((-s_i[s] / s_tau) * dt)
                      
                     current = current + g_is[s]*s_i[s]
-            # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
             current = R_m * current * (E_s - V[i-1])
-            # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
             V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
             if (V[i] >= v_threshold):
                 V[i] = v_rest
                 if (times[i] >= 270.0):
                     fire_rate_30 = fire_rate_30 + 1
-                    #fire_rate_30[fire_30_index] = fire_rate_30[fire_30_index] + 1.0
-            '''
-            if (times[i] >= 270.0):
-                fire_30_count += 1
-                if (fire_30_count == (1/dt)):
-                    fire_30_count = 0
-                    fire_30_index += 1
-                    '''
 
         return fire_rate_30
     
@@ -816,25 +757,12 @@ def B4(B):
         value = r0 + (B * m.sin(2 * m.pi * f * t))
         for s in range (len(spikes)):
             spike = random.uniform(0.00, 1.00)
-            #spike = random.random()
-            
+
             if (spike < dt * value):
                 spikes[s] = 1
             else:
                 spikes[s] = 0
         return spikes
-
-    # def genSpikeTrain():
-    #     spikes = np.zeros(40)
-    #     for s in range (len(spikes)):
-    #         spike = random.uniform(0.00, 1.00)
-    #         #spike = random.random()
-            
-    #         if (spike < r*dt):
-    #             spikes[s] = 1
-    #         else:
-    #             spikes[s] = 0
-    #     return spikes
 
     def updateGi(pre_post_diff):
         delta_t = 0
@@ -886,12 +814,8 @@ def B4(B):
         return fire_rate_30
 
     def getVoltages40Syn_Off():
-        # update each synapse with each voltage, it should affect the same neuron 
-
-        # we have variables for the 300s need one for the last 30s
         fire_rate_30 = 0
         for i in range (len(times)):
-            # 40 spikes for 40 synapses
             spike_train = genSpikeTrain()
             current = 0
             if (i != 0):
@@ -950,7 +874,6 @@ def B4(B):
     r0 = 20  * Hz
     f = 10 * Hz
 
-    
     # fire_rate_30 = getVoltages40Syn_Off()
     fire_rate_30 = getVoltages40Syn_On()
     print(B)
@@ -996,7 +919,6 @@ if __name__ == "__main__":
     
     print("-----PARTB QUESTION2 FIRING RATE OF POST NEURON OFF 30 Seconds-----")
     # print(fire_rate_30)
-
 
     print("-----PARTB QUESTION3 ON 10-20Hz-----")
     rates = []
@@ -1083,7 +1005,6 @@ if __name__ == "__main__":
     # plt.plot(x, rates, label="STDP ON")
     # plt.plot(x, rates_off, label="STDP OFF")
 
-
     # plt.title('Mean Output Firing Rate based on Input Firing Rate')
     # plt.xlabel('Input Firing Rate(Hz)')
     # plt.ylabel('Output Firing Rate(Hz)')
@@ -1094,7 +1015,6 @@ if __name__ == "__main__":
     print("-----PARTB QUESTION3 ssss distribution 10/20Hz-----")
     # r = 10  * Hz
     # rate, gis_10 = B3_On_10(r)
-
 
     # r = 20  * Hz
     # rate, gis_20 = B3_On_10(r)
@@ -1107,8 +1027,6 @@ if __name__ == "__main__":
     # plt.ylabel('Frequency')
     # plt.legend(loc="upper left")
     # plt.savefig('B3 ssss1 label1')
-
-
 
     print("-----PARTB QUESTION4-----")
     gs_mean = []
@@ -1178,13 +1096,6 @@ if __name__ == "__main__":
     # plt.xlabel('Weight (nS)')
     # plt.ylabel('Frequency')
     # plt.savefig('B4 ssss_0hz label3')
-
-    # B = 10
-    # gs10 = B4(B)
-
-    # plt.title('Steady-State Synaptic Weights for B=10Hz')
-    # plt.hist(gs10, bins=10, fc=(0, 0, 1, 0.5))
-    # plt.savefig('B4 ssss_10hz')
 
     B = 20
     gs20 = B4(B)
