@@ -21,9 +21,6 @@ import random
 # Cm: total membrane capacitance
 # V = membrane potential
 # tau_m = RmCm
-'''
-Cm(dv/dt) = ( E_L - V )/ m_rests + I_e : volt (unless refractory)
-'''
 
 Hz = 1.0
 sec = 1.0
@@ -46,7 +43,6 @@ def A1():
             if (i == 0):
                 V[i] = 0
             else:
-                # v(i-1) + dv/dt * dt
                 V[i] = V[i-1] + ((E_L - V[i-1] + (m_resistance * I_e)) / m_tau) * dt
     
             if (V[i] >= v_threshold):
@@ -111,7 +107,6 @@ def A2():
                     V_2[i] = v_rest
 
                 #-------------------------------------------------
-
                 if (V_2[i-1] == v_rest):
                     S_1[i] = S_1[i-1] + updateSynapse(S_1[i-1]) + P
                 else:
@@ -146,8 +141,8 @@ def A2():
         plt.ylabel('Membrane Potential (V)')
         
         plt.legend(loc="upper left")
-        plt.show()
-        # plt.savefig('A2 Inhib')
+        #plt.show()
+        plt.savefig('A2 Inhit')
 
     duration = 1 * sec
     dt = 0.25 * ms
@@ -169,14 +164,14 @@ def A2():
     # Excitatory
     E_s = 0 * mV
 
-    #V_1, V_2 = simulateTwoNeurons()
-    #plotVoltage2(times, V_1, V_2)
+    # V_1, V_2 = simulateTwoNeurons()
+    # plotVoltage2(times, V_1, V_2)
 
     # Inhibitory 
     E_s = -80 * mV
 
-    #V_1, V_2 = simulateTwoNeurons()
-    #plotVoltage2(times, V_1, V_2)
+    V_1, V_2 = simulateTwoNeurons()
+    plotVoltage2(times, V_1, V_2)
 
 
 # QUESTION B1---------------------------------------------------
@@ -202,9 +197,7 @@ def B1():
 
     def getVoltagesB1():
         fire_rate_30 = 0
-        # update each synapse with each voltage, it should affect the same neuron 
         for i in range (len(times)):
-            # 40 spikes for 40 synapses
             spike_train = genSpikeTrain()
             current = 0
             if (i != 0):
@@ -215,9 +208,7 @@ def B1():
                     else :
                         s_i[s] = s_i[s-1] + ((-s_i[s-1] / s_tau) * dt)
                     current = current + gbar_i*s_i[s]
-            # current[s] =  R_m * current * (E_s - V[i-1]) # THIS IS QUESTIONABLE
             current = R_m * current * (E_s - V[i-1])
-            # V[i] = V[i-1] + (E_L - V[i-1] + R_m + current) * dt / m_tau
             V[i] = V[i-1] + (E_L - V[i-1] + current) * dt / m_tau
             if (V[i] >= v_threshold):
                 V[i] = v_rest
@@ -277,11 +268,13 @@ def B2_on():
         plt.show()
 
     def plotSynWeightHist(g_is):
-        print(g_is)
-        plt.title('Steady-State Synaptic Weights')
-        plt.hist(g_is, density=True, bins=10)
+        plt.title('Steady-State Synaptic Weights Distribution')
+        plt.hist(g_is, bins=10)
+
+        plt.xlabel('Weights (nS)')
+        plt.ylabel('Frequency')
         #plt.show()
-        plt.savefig('ssss2')
+        plt.savefig('sssslabelled4')
 
     def plotAvgFireRate300(fires):
         timesBins = np.arange(0, 300, 10)
@@ -434,8 +427,8 @@ def B2_on():
 
     fire_rate_300, fire_rate_30 = getVoltages40Syn_On()
 
-    #print("-----PARTB QUESTION2 HISTOGRAM-----")
-    #plotSynWeightHist(g_is)
+    print("-----PARTB QUESTION2 HISTOGRAM-----")
+    plotSynWeightHist(g_is)
     
     print("-----PARTB QUESTION2 firing rate 300-----")
     #plotAvgFireRate300(fire_rate_300)
@@ -815,7 +808,7 @@ def B3_Off_10(r):
     print(fire_rate_30)
     print(fire_rate_30/30)
     rate = fire_rate_30
-    return rate, gis
+    return rate, g_is
 
 def B4(B):
     def genSpikeTrain(t):
@@ -973,7 +966,7 @@ if __name__ == "__main__":
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTA QUESTION2-----")
-    #A2()
+    # A2()
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION1-----")
@@ -981,7 +974,7 @@ if __name__ == "__main__":
 
     # ----------------------------------------------------------------------------------------------------------------------
     print("-----PARTB QUESTION2 STDP ON-----")
-    #g_is_from_on = B2_on()
+    # g_is_from_on = B2_on()
     
     # print("-----PARTB QUESTION2 HISTOGRAM-----")
     # plt.hist(g_is)
@@ -1107,10 +1100,13 @@ if __name__ == "__main__":
     # rate, gis_20 = B3_On_10(r)
 
     # plt.title('Steady-State Synaptic Weights')
-    # plt.hist(gis_10, density=True, bins=10, fc=(0, 0, 1, 0.5), label="10Hz")
-    # plt.hist(gis_20, density=True, bins=10, fc=(0, 1, 0, 0.5), label="20Hz")
+    # plt.hist(gis_10, bins=10, fc=(0, 0, 1, 0.5), label="10Hz")
+    # plt.hist(gis_20, bins=10, fc=(0, 1, 0.5, 0.5), label="20Hz")
+
+    # plt.xlabel('Weights (nS)')
+    # plt.ylabel('Frequency')
     # plt.legend(loc="upper left")
-    # plt.savefig('B3 ssss3')
+    # plt.savefig('B3 ssss1 label1')
 
 
 
@@ -1160,31 +1156,52 @@ if __name__ == "__main__":
 
     # bs = [0, 5, 10, 15, 20]
 
-    # plt.title('Steady-State Synaptic Weights Mean')
-    # plt.plot(bs, gs_mean, label="Mean")
+    # #plt.title('Steady-State Synaptic Weights Mean')
+    # plt.title('Steady-State Synaptic Weights Standard Deviation')
+    # #plt.plot(bs, gs_mean, label="Mean")
     # plt.plot(bs, gs_std, label="Standard Deviation")
 
-    # plt.legend(loc="upper left")
-    # plt.savefig('B4 ssss4')
+    # # plt.legend(loc="upper left")
+    # # plt.xlabel('Degree of Correlation (Hz)')
+    # # plt.ylabel('Mean (nS)')
+    # plt.xlabel('Degree of Correlation (Hz)')
+    # plt.ylabel('Standard Deviation')
+    # plt.savefig('B4 std labels3')
 
     print("-----PARTB QUESTION4 DISTRIBUTION-----")
 
-    B = 0
-    gs0 = B4(B)
+    # B = 0
+    # gs0 = B4(B)
+
+    # plt.title('Steady-State Synaptic Weights histogram for B=0Hz')
+    # plt.hist(gs0, density=True, bins=10, fc=(0, 0, 1, 0.5))
+    # plt.xlabel('Weight (nS)')
+    # plt.ylabel('Frequency')
+    # plt.savefig('B4 ssss_0hz label3')
 
     # B = 10
     # gs10 = B4(B)
 
+    # plt.title('Steady-State Synaptic Weights for B=10Hz')
+    # plt.hist(gs10, bins=10, fc=(0, 0, 1, 0.5))
+    # plt.savefig('B4 ssss_10hz')
+
     B = 20
     gs20 = B4(B)
 
+    plt.title('Steady-State Synaptic Weights for B=20Hz')
+    plt.hist(gs20, bins=10, fc=(0, 0, 1, 0.5))
+    plt.xlabel('Weight (nS)')
+    plt.ylabel('Frequency')
+    plt.savefig('B4 ssss_20hz label6')
 
-    plt.title('Steady-State Synaptic Weights')
-    plt.hist(gs0, density=True, bins=10, fc=(0, 0, 1, 0.5), label="0Hz")
-    # plt.hist(gs20, density=True, bins=10, fc=(1, 0, 0, 0.5), label="10Hz")
-    plt.hist(gs20, density=True, bins=10, fc=(0, 1, 0, 0.5), label="20Hz")
-    plt.legend(loc="upper left")
-    plt.savefig('B4 ssss_020_2')
+
+    # plt.title('Steady-State Synaptic Weights')
+    # plt.hist(gs0, density=True, bins=10, fc=(0, 0, 1, 0.5), label="0Hz")
+    # # plt.hist(gs20, density=True, bins=10, fc=(1, 0, 0, 0.5), label="10Hz")
+    # plt.hist(gs20, density=True, bins=10, fc=(0, 1, 0, 0.5), label="20Hz")
+    # plt.legend(loc="upper left")
+    # plt.savefig('B4 ssss_020_2')
 
 
      
